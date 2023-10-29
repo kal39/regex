@@ -31,9 +31,6 @@ Token parser_next(Parser* parser) {
     Token out = (Token){TOK_NONE, '\0'};
 
     while (out.type == TOK_NONE) {
-        //     printf("next: '%c', out: '%c'\n", parser->next.c, out.c);
-        //     getchar();
-
         switch (parser->next.type) {
             case TOK_CONCAT:
             case TOK_OR:

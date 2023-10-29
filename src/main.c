@@ -2,8 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "parser.h"
-#include "scanner.h"
+#include "parser/parser.h"
 
 int main() {
     // int main(int argc, char* argv[]) {
@@ -19,20 +18,13 @@ int main() {
 
     printf("input: %s\n", regex_str);
 
-    Scanner* s = scanner_create(regex_str);
     Parser* p = parser_create(regex_str);
-
-    printf("scan:  ");
-    for (Token t = scanner_next(s); t.type != TOK_END; t = scanner_next(s))
-        printf(t.type == TOK_CHAR ? "%c" : "%c", t.c);
-    printf("\n");
 
     printf("parse: ");
     for (Token t = parser_next(p); t.type != TOK_END; t = parser_next(p))
         printf(t.type == TOK_CHAR ? "%c" : "%c", t.c);
     printf("\n");
 
-    scanner_destroy(s);
     parser_destroy(p);
 
     return 0;

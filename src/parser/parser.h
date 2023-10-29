@@ -1,5 +1,4 @@
-// https://en.wikipedia.org/wiki/Shunting_yard_algorithm
-// https://aquarchitect.github.io/swift-algorithm-club/Shunting%20Yard/
+// ref: https://aquarchitect.github.io/swift-algorithm-club/Shunting%20Yard/
 
 #pragma once
 
