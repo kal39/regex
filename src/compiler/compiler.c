@@ -75,7 +75,9 @@ Graph* compile(char* regex) {
 
     parser_destroy(p);
 
-    graph_set_start(g, ExprList_pop(stack).start);
+    graph_set_start(g, ExprList_peek(stack).start);
+    graph_set_end(g, ExprList_peek(stack).end);
+
     ExprList_destroy(stack);
 
     return g;

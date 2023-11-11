@@ -8,6 +8,7 @@ Graph* graph_create() {
     Graph* graph = malloc(sizeof(Graph));
     graph->nodes = NodeList_create(0, (Node){0, NULL, NULL});
     graph->start = NULL;
+    graph->end = NULL;
     return graph;
 }
 
@@ -28,6 +29,14 @@ Node* graph_get_start(Graph* graph) {
 
 void graph_set_start(Graph* graph, Node* start) {
     graph->start = start;
+}
+
+Node* graph_get_end(Graph* graph) {
+    return graph->end;
+}
+
+void graph_set_end(Graph* graph, Node* end) {
+    graph->end = end;
 }
 
 bool graph_optimize(Graph* graph) {
@@ -87,7 +96,9 @@ bool graph_optimize(Graph* graph) {
 }
 
 void graph_print(Graph* graph, FILE* stream) {
-    fprintf(stream, "digraph {\nrankdir=LR;\n");
+    fprintf(stream, "digraph {\n");
+    fprintf(stream, "rankdir=LR;\n");
+    fprintf(stream, "\"0\" [label=\"\", shape=none,height=.0,width=.0]\n");
 
     for (int i = 0; i < NodeList_len(graph->nodes); i++) {
         Node* node = NodeList_get_ref(graph->nodes, i);
@@ -105,8 +116,12 @@ void graph_print(Graph* graph, FILE* stream) {
             "\"%p\"[label=\"%c\", shape=%s];\n",
             (void*)node,
             node->c ? node->c : ' ',
-            node == graph->start ? "doublecircle" : "circle"
+            node == graph->end ? "doublecircle" : "circle"
         );
+
+        if (node == graph->start)
+            fprintf(stream, "\"0\" -> \"%p\";\n", (void*)node);
+
         if (node->out1)
             fprintf(
                 stream,
@@ -114,6 +129,7 @@ void graph_print(Graph* graph, FILE* stream) {
                 (void*)node,
                 (void*)node->out1
             );
+
         if (node->out2)
             fprintf(
                 stream,

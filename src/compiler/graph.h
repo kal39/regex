@@ -16,6 +16,7 @@ GEN_LIST_DEF(NodeList, Node)
 typedef struct Graph {
     NodeList* nodes;
     Node* start;
+    Node* end;
 } Graph;
 
 Graph* graph_create();
@@ -27,6 +28,10 @@ Node* graph_new_node(Graph* graph, char c, Node* out1, Node* out2);
 Node* graph_get_start(Graph* graph);
 
 void graph_set_start(Graph* graph, Node* start);
+
+Node* graph_get_end(Graph* graph);
+
+void graph_set_end(Graph* graph, Node* end);
 
 bool graph_optimize(Graph* graph);
 

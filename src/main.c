@@ -6,15 +6,6 @@
 #include "parser/parser.h"
 
 int main() {
-    // int main(int argc, char* argv[]) {
-    // if (argc != 3) {
-    //     printf("usage: %s [string-to-match] [regex]\n", argv[0]);
-    //     return -1;
-    // }
-
-    // char* str = argv[1];
-    // char* regex_str = argv[2];
-
     char* regex_str = "ab?c*d+e";
 
     printf("input: %s\n", regex_str);
