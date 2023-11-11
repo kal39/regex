@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "compiler/compiler.h"
 #include "parser/parser.h"
 
 int main() {
@@ -26,6 +27,14 @@ int main() {
     printf("\n");
 
     parser_destroy(p);
+
+    Graph* g = compile(regex_str);
+
+    FILE* fp = fopen("graph.dot", "w");
+    graph_print(g, fp);
+    fclose(fp);
+
+    graph_destroy(g);
 
     return 0;
 }

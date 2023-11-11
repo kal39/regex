@@ -2,7 +2,7 @@
 
 #include "token.h"
 
-// TODO: make token_list operations check len
+GEN_LIST_IMPL(TokenList, Token)
 
 char* token_name(Token token) {
     switch (token.type) {
@@ -24,29 +24,4 @@ bool token_is_expr_start(Token token) {
 bool token_is_expr_end(Token token) {
     return token.type == TOK_CHAR || token.type == TOK_RBRACE
         || token.type == TOK_STAR;
-}
-
-TokenList* token_list_create(int len) {
-    TokenList* list = malloc(sizeof *list);
-    list->len = len;
-    list->pos = 0;
-    list->tokens = malloc(sizeof *list->tokens * len);
-    return list;
-}
-
-void token_list_destroy(TokenList* list) {
-    free(list->tokens);
-    free(list);
-}
-
-Token token_list_peek(TokenList* list) {
-    return list->pos > 0 ? list->tokens[list->pos - 1] : (Token){TOK_END, '\0'};
-}
-
-Token token_list_pop(TokenList* list) {
-    return list->pos > 0 ? list->tokens[--list->pos] : (Token){TOK_END, '\0'};
-}
-
-void token_list_push(TokenList* list, Token token) {
-    if (list->pos < list->len) list->tokens[list->pos++] = token;
 }

@@ -16,14 +16,14 @@ static int precedence(Token token) {
 Parser* parser_create(char* str) {
     Parser* parser = malloc(sizeof(Parser));
     parser->scanner = scanner_create(str);
-    parser->stack = token_list_create(strlen(str));
+    parser->stack = TokenList_create(strlen(str) * 2, (Token){TOK_END, 0});
     parser->next = scanner_next(parser->scanner);
     return parser;
 }
 
 void parser_destroy(Parser* parser) {
     scanner_destroy(parser->scanner);
-    token_list_destroy(parser->stack);
+    TokenList_destroy(parser->stack);
     free(parser);
 }
 
@@ -35,25 +35,25 @@ Token parser_next(Parser* parser) {
             case TOK_CONCAT:
             case TOK_OR:
             case TOK_STAR: {
-                Token peek = token_list_peek(parser->stack);
+                Token peek = TokenList_peek(parser->stack);
                 if (precedence(parser->next) <= precedence(peek)) {
                     out = peek;
-                    token_list_pop(parser->stack);
+                    TokenList_pop(parser->stack);
                 } else {
-                    token_list_push(parser->stack, parser->next);
+                    TokenList_push(parser->stack, parser->next);
                     parser->next = scanner_next(parser->scanner);
                 }
                 break;
             }
             case TOK_LBRACE:
-                token_list_push(parser->stack, parser->next);
+                TokenList_push(parser->stack, parser->next);
                 parser->next = scanner_next(parser->scanner);
                 break;
             case TOK_RBRACE:
-                if (token_list_peek(parser->stack).type != TOK_LBRACE) {
-                    out = token_list_pop(parser->stack);
+                if (TokenList_peek(parser->stack).type != TOK_LBRACE) {
+                    out = TokenList_pop(parser->stack);
                 } else {
-                    token_list_pop(parser->stack);
+                    TokenList_pop(parser->stack);
                     parser->next = scanner_next(parser->scanner);
                 }
                 break;
@@ -61,7 +61,7 @@ Token parser_next(Parser* parser) {
                 out = parser->next;
                 parser->next = scanner_next(parser->scanner);
                 break;
-            default: out = token_list_pop(parser->stack); break;
+            default: out = TokenList_pop(parser->stack); break;
         }
     }
 
