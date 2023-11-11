@@ -24,7 +24,9 @@ Token scanner_next(Scanner* scanner) {
 
     switch (c) {
         case '\0': next = (Token){TOK_END, c}; break;
+        case '?': next = (Token){TOK_OPT, c}; break;
         case '*': next = (Token){TOK_STAR, c}; break;
+        case '+': next = (Token){TOK_PLUS, c}; break;
         case '|': next = (Token){TOK_OR, c}; break;
         case '(': next = (Token){TOK_LBRACE, c}; break;
         case ')': next = (Token){TOK_RBRACE, c}; break;

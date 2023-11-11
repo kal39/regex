@@ -38,6 +38,16 @@ Graph* compile(char* regex) {
                 ExprList_push(stack, (Expr){start, end});
                 break;
             }
+            case TOK_OPT: {
+                Expr e = ExprList_pop(stack);
+
+                Node* end = graph_new_node(g, 0, NULL, NULL);
+                Node* start = graph_new_node(g, 0, e.start, end);
+                e.end->out1 = end;
+
+                ExprList_push(stack, (Expr){start, end});
+                break;
+            }
             case TOK_STAR: {
                 Expr e = ExprList_pop(stack);
 
@@ -46,6 +56,16 @@ Graph* compile(char* regex) {
                 e.end->out1 = start;
 
                 ExprList_push(stack, (Expr){start, end});
+                break;
+            }
+            case TOK_PLUS: {
+                Expr e = ExprList_pop(stack);
+
+                Node* end = graph_new_node(g, 0, NULL, NULL);
+                Node* mid = graph_new_node(g, 0, end, e.start);
+                e.end->out1 = mid;
+
+                ExprList_push(stack, (Expr){e.start, end});
                 break;
             }
 
@@ -58,6 +78,5 @@ Graph* compile(char* regex) {
     graph_set_start(g, ExprList_pop(stack).start);
     ExprList_destroy(stack);
 
-    graph_optimize(g);
     return g;
 }

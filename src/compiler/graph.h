@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stdio.h>
 
 #include "list/list.h"
@@ -27,6 +28,6 @@ Node* graph_get_start(Graph* graph);
 
 void graph_set_start(Graph* graph, Node* start);
 
-void graph_optimize(Graph* graph);
+bool graph_optimize(Graph* graph);
 
 void graph_print(Graph* graph, FILE* stream);

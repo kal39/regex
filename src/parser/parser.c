@@ -6,7 +6,9 @@
 
 static int precedence(Token token) {
     switch (token.type) {
-        case TOK_STAR: return 3;
+        case TOK_OPT:
+        case TOK_STAR:
+        case TOK_PLUS: return 3;
         case TOK_CONCAT: return 2;
         case TOK_OR: return 1;
         default: return 0;
@@ -34,7 +36,9 @@ Token parser_next(Parser* parser) {
         switch (parser->next.type) {
             case TOK_CONCAT:
             case TOK_OR:
-            case TOK_STAR: {
+            case TOK_OPT:
+            case TOK_STAR:
+            case TOK_PLUS: {
                 Token peek = TokenList_peek(parser->stack);
                 if (precedence(parser->next) <= precedence(peek)) {
                     out = peek;

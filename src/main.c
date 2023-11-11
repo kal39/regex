@@ -15,9 +15,18 @@ int main() {
     // char* str = argv[1];
     // char* regex_str = argv[2];
 
-    char* regex_str = "a(b|c)*d";
+    char* regex_str = "ab?c*d+e";
 
     printf("input: %s\n", regex_str);
+
+    Scanner* s = scanner_create(regex_str);
+
+    printf("scan:  ");
+    for (Token t = scanner_next(s); t.type != TOK_END; t = scanner_next(s))
+        printf(t.type == TOK_CHAR ? "%c" : "%c", t.c);
+    printf("\n");
+
+    scanner_destroy(s);
 
     Parser* p = parser_create(regex_str);
 
@@ -30,9 +39,16 @@ int main() {
 
     Graph* g = compile(regex_str);
 
-    FILE* fp = fopen("graph.dot", "w");
-    graph_print(g, fp);
-    fclose(fp);
+    FILE* fp1 = fopen("graph_unoptimized.dot", "w");
+    graph_print(g, fp1);
+    fclose(fp1);
+
+    while (graph_optimize(g)) {
+    }
+
+    FILE* fp2 = fopen("graph_optimized.dot", "w");
+    graph_print(g, fp2);
+    fclose(fp2);
 
     graph_destroy(g);
 
