@@ -11,4 +11,4 @@ add_executable(main ${CPP_FILES} ${C_FILES})
 target_include_directories(main PRIVATE src)
 
 target_link_libraries(main)
-target_compile_options(main PRIVATE -g -Wall -Wextra -pedantic)
+target_compile_options(main PRIVATE -g -Wall -Wextra -pedantic -Wno-unused-parameter)

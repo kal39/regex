@@ -14,10 +14,10 @@ typedef struct Node {
     bool v;
 } Node;
 
+GEN_LIST_DEF(NodeList, Node)
+
 typedef struct Graph {
-    int nodeCount;
-    int nodeCap;
-    Node* nodes;
+    NodeList* nodes;
     NodeID start;
     NodeID end;
 } Graph;
@@ -37,6 +37,9 @@ void graph_set_start(Graph* g, NodeID start);
 
 NodeID graph_get_end(Graph* g);
 void graph_set_end(Graph* g, NodeID end);
+
+NodeID graph_iter_begin(Graph* g);
+void graph_iter(Graph* g, NodeID* idx);
 
 void graph_optimize(Graph* g);
 

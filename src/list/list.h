@@ -18,7 +18,13 @@
                                                                                \
     data_type list_type##_pop(list_type* list);                                \
                                                                                \
-    void list_type##_push(list_type* list, data_type item);
+    void list_type##_push(list_type* list, data_type item);                    \
+                                                                               \
+    data_type list_type##_get(list_type* list, int idx);                       \
+                                                                               \
+    void list_type##_set(list_type* list, int idx, data_type item);            \
+                                                                               \
+    data_type list_type##_remove(list_type* list, int idx);
 
 #define GEN_LIST_IMPL(list_type, data_type)                                    \
     list_type* list_type##_create(int cap, data_type def_val) {                \
@@ -53,4 +59,23 @@
             list->dat = realloc(list->dat, sizeof(data_type) * list->cap);     \
         }                                                                      \
         list->dat[list->len++] = item;                                         \
+    }                                                                          \
+                                                                               \
+    data_type list_type##_get(list_type* list, int idx) {                      \
+        return 0 <= idx && idx < list->len ? list->dat[idx] : list->def_val;   \
+    }                                                                          \
+                                                                               \
+    void list_type##_set(list_type* list, int idx, data_type item) {           \
+        if (0 <= idx && idx < list->len) list->dat[idx] = item;                \
+    }                                                                          \
+                                                                               \
+    data_type list_type##_remove(list_type* list, int idx) {                   \
+        if (0 <= idx && idx < list->len) {                                     \
+            data_type item = list->dat[idx];                                   \
+            for (int i = idx; i < list->len - 1; i++)                          \
+                list->dat[i] = list->dat[i + 1];                               \
+            list->len--;                                                       \
+            return item;                                                       \
+        }                                                                      \
+        return list->def_val;                                                  \
     }
