@@ -2,7 +2,7 @@
 
 #include "interpreter.h"
 
-bool match(Graph* g, char* str) {
+bool match(Graph* g, char* str, GraphPrinter* gp) {
     // init states
     bool* old_state = malloc(sizeof(bool) * graph_size(g));
     bool* new_state = malloc(sizeof(bool) * graph_size(g));
@@ -28,12 +28,9 @@ bool match(Graph* g, char* str) {
             }
         }
 
-        // char fileName[256];
-        // sprintf(fileName, "itr_%03d.dot", i);
-
-        // FILE* fp = fopen(fileName, "w");
-        // graph_print_dot(g, fp, old_state);
-        // fclose(fp);
+        char label[256];
+        sprintf(label, "iteration %d", i);
+        if (gp) graph_printer_print(gp, g, old_state, label);
     }
 
     bool res = old_state[graph_get_end(g)];

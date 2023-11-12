@@ -2,8 +2,6 @@
 
 #include "graph.h"
 
-GEN_LIST_IMPL(NodeList, Node)
-
 static bool is_empty(Graph* g, NodeID id) {
     return NodeList_get(g->nodes, id).c == 0;
 }
@@ -133,39 +131,4 @@ void graph_optimize(Graph* g) {
 
         if (!workDone) break;
     }
-}
-
-void graph_print_dot(Graph* g, FILE* fp, bool* state) {
-    fprintf(fp, "digraph {\n");
-    fprintf(fp, "rankdir=LR;\n");
-    fprintf(fp, "\"start\" [label=\"\", shape=none,height=.0,width=.0]\n");
-
-    for (NodeID i = graph_iter_begin(g); i; graph_iter(g, &i)) {
-        bool hasIn = false;
-        for (NodeID j = graph_iter_begin(g); j; graph_iter(g, &j)) {
-            if (graph_get(g, j).out1 == i || graph_get(g, j).out2 == i)
-                hasIn = true;
-        }
-
-        if (!hasIn && i != g->start) continue;
-
-        fprintf(
-            fp,
-            "%d [label=\"%c%c\", shape=%s];\n",
-            i,
-            NodeList_get(g->nodes, i).c ? NodeList_get(g->nodes, i).c : ' ',
-            state && state[i] ? '*' : ' ',
-            i == g->end ? "doublecircle" : "circle"
-        );
-
-        if (i == g->start) fprintf(fp, "\"start\" -> %d;\n", i);
-
-        if (graph_get(g, i).out1)
-            fprintf(fp, "%d -> %d;\n", i, graph_get(g, i).out1);
-
-        if (graph_get(g, i).out2)
-            fprintf(fp, "%d -> %d;\n", i, graph_get(g, i).out2);
-    }
-
-    fprintf(fp, "}");
 }

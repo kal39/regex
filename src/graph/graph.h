@@ -1,19 +1,8 @@
 #pragma once
 
 #include <stdbool.h>
-#include <stdio.h>
 
-#include "list/list.h"
-
-typedef int NodeID;
-
-typedef struct Node {
-    char c;
-    NodeID out1;
-    NodeID out2;
-} Node;
-
-GEN_LIST_DEF(NodeList, Node)
+#include "node.h"
 
 typedef struct Graph {
     NodeList* nodes;
@@ -43,5 +32,3 @@ NodeID graph_iter_begin(Graph* g);
 void graph_iter(Graph* g, NodeID* idx);
 
 void graph_optimize(Graph* g);
-
-void graph_print_dot(Graph* g, FILE* fp, bool* state);

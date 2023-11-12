@@ -2,6 +2,6 @@
 
 #include <stdbool.h>
 
-#include "parser/graph.h"
+#include "graph/graph_printer.h"
 
-bool match(Graph* regex, char* str);
+bool match(Graph* regex, char* str, GraphPrinter* gp);
