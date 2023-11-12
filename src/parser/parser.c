@@ -1,8 +1,19 @@
+// ref: https://swtch.com/~rsc/regexp/regexp1.html
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "parser.h"
+#include "scanner.h"
+
+typedef struct Expr {
+    Node* start;
+    Node* end;
+} Expr;
+
+GEN_LIST_DEF(ExprList, Expr)
+GEN_LIST_IMPL(ExprList, Expr)
 
 static int precedence(Token token) {
     switch (token.type) {
@@ -15,59 +26,116 @@ static int precedence(Token token) {
     }
 }
 
-Parser* parser_create(char* str) {
-    Parser* parser = malloc(sizeof(Parser));
-    parser->scanner = scanner_create(str);
-    parser->stack = TokenList_create(strlen(str) * 2, (Token){TOK_END, 0});
-    parser->next = scanner_next(parser->scanner);
-    return parser;
+static void add_token(Graph* g, ExprList* eStack, Token t) {
+    switch (t.type) {
+        case TOK_CHAR: {
+            Node* node = graph_new_node(g, t.c, NULL, NULL);
+            ExprList_push(eStack, (Expr){node, node});
+            break;
+        }
+        case TOK_CONCAT: {
+            Expr e2 = ExprList_pop(eStack);
+            Expr e1 = ExprList_pop(eStack);
+            e1.end->out1 = e2.start;
+            ExprList_push(eStack, (Expr){e1.start, e2.end});
+            break;
+        }
+        case TOK_OR: {
+            Expr e1 = ExprList_pop(eStack);
+            Expr e2 = ExprList_pop(eStack);
+
+            Node* start = graph_new_node(g, 0, e1.start, e2.start);
+            Node* end = graph_new_node(g, 0, NULL, NULL);
+            e1.end->out1 = end;
+            e2.end->out1 = end;
+
+            ExprList_push(eStack, (Expr){start, end});
+            break;
+        }
+        case TOK_OPT: {
+            Expr e = ExprList_pop(eStack);
+
+            Node* end = graph_new_node(g, 0, NULL, NULL);
+            Node* start = graph_new_node(g, 0, e.start, end);
+            e.end->out1 = end;
+
+            ExprList_push(eStack, (Expr){start, end});
+            break;
+        }
+        case TOK_STAR: {
+            Expr e = ExprList_pop(eStack);
+
+            Node* end = graph_new_node(g, 0, NULL, NULL);
+            Node* start = graph_new_node(g, 0, e.start, end);
+            e.end->out1 = start;
+
+            ExprList_push(eStack, (Expr){start, end});
+            break;
+        }
+        case TOK_PLUS: {
+            Expr e = ExprList_pop(eStack);
+
+            Node* end = graph_new_node(g, 0, NULL, NULL);
+            Node* mid = graph_new_node(g, 0, end, e.start);
+            e.end->out1 = mid;
+
+            ExprList_push(eStack, (Expr){e.start, end});
+            break;
+        }
+
+        default: break;
+    }
 }
 
-void parser_destroy(Parser* parser) {
-    scanner_destroy(parser->scanner);
-    TokenList_destroy(parser->stack);
-    free(parser);
-}
+Graph* parse(char* regex) {
+    Scanner* s = scanner_create(regex);
+    TokenList* tStack = TokenList_create(0, (Token){TOK_END, 0});
+    ExprList* eStack = ExprList_create(0, (Expr){NULL, NULL});
+    Graph* g = graph_create();
 
-Token parser_next(Parser* parser) {
-    Token out = (Token){TOK_NONE, '\0'};
+    for (bool cont = true; cont;) {
+        Token t = scanner_next(s);
 
-    while (out.type == TOK_NONE) {
-        switch (parser->next.type) {
+        switch (t.type) {
             case TOK_CONCAT:
             case TOK_OR:
             case TOK_OPT:
             case TOK_STAR:
             case TOK_PLUS: {
-                Token peek = TokenList_peek(parser->stack);
-                if (precedence(parser->next) <= precedence(peek)) {
-                    out = peek;
-                    TokenList_pop(parser->stack);
-                } else {
-                    TokenList_push(parser->stack, parser->next);
-                    parser->next = scanner_next(parser->scanner);
-                }
+                while (precedence(t) <= precedence(TokenList_peek(tStack)))
+                    add_token(g, eStack, TokenList_pop(tStack));
+                TokenList_push(tStack, t);
                 break;
             }
-            case TOK_LBRACE:
-                TokenList_push(parser->stack, parser->next);
-                parser->next = scanner_next(parser->scanner);
+            case TOK_LBRACE: {
+                TokenList_push(tStack, t);
                 break;
-            case TOK_RBRACE:
-                if (TokenList_peek(parser->stack).type != TOK_LBRACE) {
-                    out = TokenList_pop(parser->stack);
-                } else {
-                    TokenList_pop(parser->stack);
-                    parser->next = scanner_next(parser->scanner);
-                }
+            }
+            case TOK_RBRACE: {
+                while (TokenList_peek(tStack).type != TOK_LBRACE)
+                    add_token(g, eStack, TokenList_pop(tStack));
+                TokenList_pop(tStack);
                 break;
-            case TOK_CHAR:
-                out = parser->next;
-                parser->next = scanner_next(parser->scanner);
+            }
+            case TOK_CHAR: {
+                add_token(g, eStack, t);
                 break;
-            default: out = TokenList_pop(parser->stack); break;
+            }
+            default: {
+                while (TokenList_len(tStack) > 0)
+                    add_token(g, eStack, TokenList_pop(tStack));
+                cont = false;
+                break;
+            }
         }
     }
 
-    return out;
+    graph_set_start(g, ExprList_peek(eStack).start);
+    graph_set_end(g, ExprList_peek(eStack).end);
+
+    scanner_destroy(s);
+    TokenList_destroy(tStack);
+    ExprList_destroy(eStack);
+
+    return g;
 }

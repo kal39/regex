@@ -30,11 +30,11 @@
 
 #define GEN_LIST_IMPL(list_type, data_type)                                    \
     list_type* list_type##_create(int cap, data_type def_val) {                \
-        list_type* list = malloc(sizeof *list);                                \
-        list->cap = cap > 0 ? cap : 1;                                         \
+        list_type* list = malloc(sizeof(list_type));                           \
+        list->cap = cap >= 2 ? cap : 2;                                        \
         list->len = 0;                                                         \
         list->def_val = def_val;                                               \
-        list->dat = malloc(sizeof *list->dat * cap);                           \
+        list->dat = malloc(sizeof(data_type) * list->cap);                     \
         return list;                                                           \
     }                                                                          \
                                                                                \
@@ -62,7 +62,7 @@
     void list_type##_push(list_type* list, data_type item) {                   \
         if (list->len == list->cap) {                                          \
             list->cap *= 2;                                                    \
-            list->dat = realloc(list->dat, sizeof *list->dat * list->cap);     \
+            list->dat = realloc(list->dat, sizeof(data_type) * list->cap);     \
         }                                                                      \
         list->dat[list->len++] = item;                                         \
     }                                                                          \
