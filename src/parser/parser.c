@@ -1,4 +1,5 @@
 // ref: https://swtch.com/~rsc/regexp/regexp1.html
+// ref: https://mathcenter.oxford.emory.edu/site/cs171/shuntingYardAlgorithm/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,8 +9,8 @@
 #include "scanner.h"
 
 typedef struct Expr {
-    Node* start;
-    Node* end;
+    NodeID start;
+    NodeID end;
 } Expr;
 
 GEN_LIST_DEF(ExprList, Expr)
@@ -29,14 +30,14 @@ static int precedence(Token token) {
 static void add_token(Graph* g, ExprList* eStack, Token t) {
     switch (t.type) {
         case TOK_CHAR: {
-            Node* node = graph_new_node(g, t.c, NULL, NULL);
+            NodeID node = graph_add(g, t.c, 0, 0);
             ExprList_push(eStack, (Expr){node, node});
             break;
         }
         case TOK_CONCAT: {
             Expr e2 = ExprList_pop(eStack);
             Expr e1 = ExprList_pop(eStack);
-            e1.end->out1 = e2.start;
+            graph_set_out1(g, e1.end, e2.start);
             ExprList_push(eStack, (Expr){e1.start, e2.end});
             break;
         }
@@ -44,10 +45,11 @@ static void add_token(Graph* g, ExprList* eStack, Token t) {
             Expr e1 = ExprList_pop(eStack);
             Expr e2 = ExprList_pop(eStack);
 
-            Node* start = graph_new_node(g, 0, e1.start, e2.start);
-            Node* end = graph_new_node(g, 0, NULL, NULL);
-            e1.end->out1 = end;
-            e2.end->out1 = end;
+            NodeID start = graph_add(g, 0, e1.start, e2.start);
+            NodeID end = graph_add(g, 0, 0, 0);
+
+            graph_set_out1(g, e1.end, end);
+            graph_set_out1(g, e2.end, end);
 
             ExprList_push(eStack, (Expr){start, end});
             break;
@@ -55,9 +57,9 @@ static void add_token(Graph* g, ExprList* eStack, Token t) {
         case TOK_OPT: {
             Expr e = ExprList_pop(eStack);
 
-            Node* end = graph_new_node(g, 0, NULL, NULL);
-            Node* start = graph_new_node(g, 0, e.start, end);
-            e.end->out1 = end;
+            NodeID end = graph_add(g, 0, 0, 0);
+            NodeID start = graph_add(g, 0, e.start, end);
+            graph_set_out1(g, e.end, end);
 
             ExprList_push(eStack, (Expr){start, end});
             break;
@@ -65,9 +67,9 @@ static void add_token(Graph* g, ExprList* eStack, Token t) {
         case TOK_STAR: {
             Expr e = ExprList_pop(eStack);
 
-            Node* end = graph_new_node(g, 0, NULL, NULL);
-            Node* start = graph_new_node(g, 0, e.start, end);
-            e.end->out1 = start;
+            NodeID end = graph_add(g, 0, 0, 0);
+            NodeID start = graph_add(g, 0, e.start, end);
+            graph_set_out1(g, e.end, start);
 
             ExprList_push(eStack, (Expr){start, end});
             break;
@@ -75,9 +77,9 @@ static void add_token(Graph* g, ExprList* eStack, Token t) {
         case TOK_PLUS: {
             Expr e = ExprList_pop(eStack);
 
-            Node* end = graph_new_node(g, 0, NULL, NULL);
-            Node* mid = graph_new_node(g, 0, end, e.start);
-            e.end->out1 = mid;
+            NodeID end = graph_add(g, 0, 0, 0);
+            NodeID mid = graph_add(g, 0, end, e.start);
+            graph_set_out1(g, e.end, mid);
 
             ExprList_push(eStack, (Expr){e.start, end});
             break;
@@ -90,7 +92,7 @@ static void add_token(Graph* g, ExprList* eStack, Token t) {
 Graph* parse(char* regex) {
     Scanner* s = scanner_create(regex);
     TokenList* tStack = TokenList_create(0, (Token){TOK_END, 0});
-    ExprList* eStack = ExprList_create(0, (Expr){NULL, NULL});
+    ExprList* eStack = ExprList_create(0, (Expr){0, 0});
     Graph* g = graph_create();
 
     for (bool cont = true; cont;) {

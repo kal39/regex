@@ -5,34 +5,40 @@
 
 #include "list/list.h"
 
+typedef int NodeID;
+
 typedef struct Node {
     char c;
-    struct Node* out1;
-    struct Node* out2;
+    NodeID out1;
+    NodeID out2;
+    bool v;
 } Node;
 
-GEN_LIST_DEF(NodeList, Node)
-
 typedef struct Graph {
-    NodeList* nodes;
-    Node* start;
-    Node* end;
+    int nodeCount;
+    int nodeCap;
+    Node* nodes;
+    NodeID start;
+    NodeID end;
 } Graph;
 
 Graph* graph_create();
+void graph_destroy(Graph* g);
 
-void graph_destroy(Graph* graph);
+NodeID graph_add(Graph* g, char c, NodeID out1, NodeID out2);
 
-Node* graph_new_node(Graph* graph, char c, Node* out1, Node* out2);
+Node graph_get(Graph* g, NodeID id);
 
-Node* graph_get_start(Graph* graph);
+void graph_set_out1(Graph* g, NodeID id, NodeID out1);
+void graph_set_out2(Graph* g, NodeID id, NodeID out2);
 
-void graph_set_start(Graph* graph, Node* start);
+NodeID graph_get_start(Graph* g);
+void graph_set_start(Graph* g, NodeID start);
 
-Node* graph_get_end(Graph* graph);
+NodeID graph_get_end(Graph* g);
+void graph_set_end(Graph* g, NodeID end);
 
-void graph_set_end(Graph* graph, Node* end);
+void graph_optimize(Graph* g);
 
-bool graph_optimize(Graph* graph);
-
-void graph_print(Graph* graph, FILE* stream);
+void graph_print_txt(Graph* g, FILE* fp);
+void graph_print_dot(Graph* g, FILE* fp);

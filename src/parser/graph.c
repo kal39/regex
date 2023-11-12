@@ -2,142 +2,172 @@
 
 #include <stdlib.h>
 
-GEN_LIST_IMPL(NodeList, Node)
+static bool is_empty(Graph* g, NodeID id) {
+    return g->nodes[id].c == 0;
+}
+
+static int get_out_count(Graph* g, NodeID id) {
+    return (g->nodes[id].out1 ? 1 : 0) + (g->nodes[id].out2 ? 1 : 0);
+}
 
 Graph* graph_create() {
-    Graph* graph = malloc(sizeof(Graph));
-    graph->nodes = NodeList_create(0, (Node){0, NULL, NULL});
-    graph->start = NULL;
-    graph->end = NULL;
-    return graph;
+    Graph* g = malloc(sizeof(Graph));
+    g->nodeCount = 1; // idx 0 used for NULL
+    g->nodeCap = 2;
+    g->nodes = malloc(sizeof(Node) * g->nodeCap);
+    g->start = 0;
+    g->end = 0;
+    return g;
 }
 
-void graph_destroy(Graph* graph) {
-    NodeList_destroy(graph->nodes);
-    free(graph);
+void graph_destroy(Graph* g) {
+    free(g->nodes);
+    free(g);
 }
 
-Node* graph_new_node(Graph* graph, char c, Node* out1, Node* out2) {
-    Node node = (Node){c, out1, out2};
-    NodeList_push(graph->nodes, node);
-    return NodeList_peek_ref(graph->nodes);
+Node graph_get(Graph* g, NodeID id) {
+    return g->nodes[id];
 }
 
-Node* graph_get_start(Graph* graph) {
-    return graph->start;
+void graph_set_out1(Graph* g, NodeID id, NodeID out1) {
+    g->nodes[id].out1 = out1;
 }
 
-void graph_set_start(Graph* graph, Node* start) {
-    graph->start = start;
+void graph_set_out2(Graph* g, NodeID id, NodeID out2) {
+    g->nodes[id].out2 = out2;
 }
 
-Node* graph_get_end(Graph* graph) {
-    return graph->end;
-}
+NodeID graph_add(Graph* g, char c, NodeID out1, NodeID out2) {
+    Node node = (Node){c, out1, out2, false};
 
-void graph_set_end(Graph* graph, Node* end) {
-    graph->end = end;
-}
-
-bool graph_optimize(Graph* graph) {
-    bool workDone = false;
-
-    for (int i = 0; i < NodeList_len(graph->nodes); i++) {
-        Node* node = NodeList_get_ref(graph->nodes, i);
-
-        // skip current node if it's empty and has one out
-        if (node->c == 0 && (node->out1 == NULL || node->out2 == NULL)) {
-            Node* out = node->out1 ? node->out1 : node->out2;
-
-            for (int j = 0; j < NodeList_len(graph->nodes); j++) {
-                Node* _node = NodeList_get_ref(graph->nodes, j);
-                if (_node->out1 == node) {
-                    _node->out1 = out;
-                    workDone = true;
-                }
-                if (_node->out2 == node) {
-                    _node->out2 = out;
-                    workDone = true;
-                }
-            }
-
-            node->out1 = NULL;
-            node->out2 = NULL;
-        }
-
-        // if current node only has one out, skip next node if it's empty
-        if (node->out1 == NULL || node->out2 == NULL) {
-            Node* out = node->out1 ? node->out1 : node->out2;
-
-            if (out && out->c == 0) {
-                node->out1 = out->out1;
-                node->out2 = out->out2;
-                workDone = true;
-            }
-        }
-
-        // skip current node if it has no in, and isn't the start node
-        if (node->out1 || node->out2) {
-            bool hasIn = false;
-            for (int j = 0; j < NodeList_len(graph->nodes); j++) {
-                Node* _node = NodeList_get_ref(graph->nodes, j);
-                if (_node->out1 == node || _node->out2 == node) hasIn = true;
-            }
-
-            if (!hasIn && node != graph->start) {
-                node->out1 = NULL;
-                node->out2 = NULL;
-                workDone = true;
-            }
-        }
+    if (g->nodeCount >= g->nodeCap) {
+        g->nodeCap *= 2;
+        g->nodes = realloc(g->nodes, sizeof(Node) * g->nodeCap);
     }
 
-    return workDone;
+    g->nodes[g->nodeCount++] = node;
+    return g->nodeCount - 1;
 }
 
-void graph_print(Graph* graph, FILE* stream) {
-    fprintf(stream, "digraph {\n");
-    fprintf(stream, "rankdir=LR;\n");
-    fprintf(stream, "\"0\" [label=\"\", shape=none,height=.0,width=.0]\n");
+NodeID graph_get_start(Graph* g) {
+    return g->start;
+}
 
-    for (int i = 0; i < NodeList_len(graph->nodes); i++) {
-        Node* node = NodeList_get_ref(graph->nodes, i);
+void graph_set_start(Graph* g, NodeID start) {
+    g->start = start;
+}
 
-        bool hasIn = false;
-        for (int j = 0; j < NodeList_len(graph->nodes); j++) {
-            Node* _node = NodeList_get_ref(graph->nodes, j);
-            if (_node->out1 == node || _node->out2 == node) hasIn = true;
+NodeID graph_get_end(Graph* g) {
+    return g->end;
+}
+
+void graph_set_end(Graph* g, NodeID end) {
+    g->end = end;
+}
+
+void graph_optimize(Graph* g) {
+    while (true) {
+        bool workDone = false;
+
+        for (int i = 1; i < g->nodeCount; i++) {
+            if (i == g->end) continue;
+
+            // skip current node if it's empty and has 1 out
+            if (is_empty(g, i) && get_out_count(g, i) == 1) {
+                NodeID next = graph_get(g, i).out1 ? graph_get(g, i).out1
+                                                   : graph_get(g, i).out2;
+
+                for (int j = 1; j < g->nodeCount; j++) {
+                    if (graph_get(g, j).out1 == i) {
+                        graph_set_out1(g, j, next);
+                        workDone = true;
+                    }
+                    if (graph_get(g, j).out2 == i) {
+                        graph_set_out2(g, j, next);
+                        workDone = true;
+                    }
+                }
+
+                graph_set_out2(g, i, 0);
+                graph_set_out2(g, i, 0);
+            }
+
+            // if current node has 1 out, skip next node if it's empty
+            if (get_out_count(g, i) == 1) {
+                NodeID next = graph_get(g, i).out1 ? graph_get(g, i).out1
+                                                   : graph_get(g, i).out2;
+
+                if (next && next != g->end && is_empty(g, next)) {
+                    graph_set_out1(g, i, graph_get(g, next).out1);
+                    graph_set_out2(g, i, graph_get(g, next).out2);
+                    workDone = true;
+                }
+            }
+
+            // skip current node if it has 0 in
+            if (i != g->start && get_out_count(g, i) != 0) {
+                bool hasIn = false;
+                for (int j = 1; j < g->nodeCount; j++) {
+                    if (graph_get(g, j).out1 == i || graph_get(g, j).out2 == i)
+                        hasIn = true;
+                }
+
+                if (!hasIn) {
+                    graph_set_out1(g, i, 0);
+                    graph_set_out2(g, i, 0);
+                    workDone = true;
+                }
+            }
         }
 
-        if (!hasIn && node != graph->start) continue;
+        if (!workDone) break;
+    }
+}
+
+void graph_print_txt(Graph* g, FILE* fp) {
+    fprintf(fp, "graph %p:\n", (void*)g);
+    fprintf(fp, "- start: %d\n", g->start);
+    fprintf(fp, "- end:   %d\n", g->end);
+    fprintf(fp, "- nodes(%d):\n", g->nodeCount);
+
+    for (int i = 1; i < g->nodeCount; i++) {
+        fprintf(fp, "  - node %d:\n", i);
+        fprintf(fp, "    - c:    '%c'\n", g->nodes[i].c);
+        fprintf(fp, "    - out1: %d\n", g->nodes[i].out1);
+        fprintf(fp, "    - out2: %d\n", g->nodes[i].out2);
+    }
+}
+
+void graph_print_dot(Graph* g, FILE* fp) {
+    fprintf(fp, "digraph {\n");
+    fprintf(fp, "rankdir=LR;\n");
+    fprintf(fp, "\"start\" [label=\"\", shape=none,height=.0,width=.0]\n");
+
+    for (int i = 1; i < g->nodeCount; i++) {
+        bool hasIn = false;
+        for (int j = 1; j < g->nodeCount; j++) {
+            if (graph_get(g, j).out1 == i || graph_get(g, j).out2 == i)
+                hasIn = true;
+        }
+
+        if (!hasIn && i != g->start) continue;
 
         fprintf(
-            stream,
-            "\"%p\"[label=\"%c\", shape=%s];\n",
-            (void*)node,
-            node->c ? node->c : ' ',
-            node == graph->end ? "doublecircle" : "circle"
+            fp,
+            "%d [label=\"%c\", shape=%s];\n",
+            i,
+            g->nodes[i].c ? g->nodes[i].c : ' ',
+            i == g->end ? "doublecircle" : "circle"
         );
 
-        if (node == graph->start)
-            fprintf(stream, "\"0\" -> \"%p\";\n", (void*)node);
+        if (i == g->start) fprintf(fp, "\"start\" -> %d;\n", i);
 
-        if (node->out1)
-            fprintf(
-                stream,
-                "\"%p\" -> \"%p\";\n",
-                (void*)node,
-                (void*)node->out1
-            );
+        if (graph_get(g, i).out1)
+            fprintf(fp, "%d -> %d;\n", i, graph_get(g, i).out1);
 
-        if (node->out2)
-            fprintf(
-                stream,
-                "\"%p\" -> \"%p\";\n",
-                (void*)node,
-                (void*)node->out2
-            );
+        if (graph_get(g, i).out2)
+            fprintf(fp, "%d -> %d;\n", i, graph_get(g, i).out2);
     }
 
-    fprintf(stream, "}");
+    fprintf(fp, "}");
 }
