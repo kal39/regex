@@ -11,7 +11,6 @@ typedef struct Node {
     char c;
     NodeID out1;
     NodeID out2;
-    bool v;
 } Node;
 
 GEN_LIST_DEF(NodeList, Node)
@@ -29,6 +28,8 @@ NodeID graph_add(Graph* g, char c, NodeID out1, NodeID out2);
 
 Node graph_get(Graph* g, NodeID id);
 
+int graph_size(Graph* g);
+
 void graph_set_out1(Graph* g, NodeID id, NodeID out1);
 void graph_set_out2(Graph* g, NodeID id, NodeID out2);
 
@@ -43,5 +44,4 @@ void graph_iter(Graph* g, NodeID* idx);
 
 void graph_optimize(Graph* g);
 
-void graph_print_txt(Graph* g, FILE* fp);
-void graph_print_dot(Graph* g, FILE* fp);
+void graph_print_dot(Graph* g, FILE* fp, bool* state);

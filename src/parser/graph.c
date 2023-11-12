@@ -15,8 +15,8 @@ static int get_out_count(Graph* g, NodeID id) {
 
 Graph* graph_create() {
     Graph* g = malloc(sizeof(Graph));
-    g->nodes = NodeList_create(0, (Node){0, 0, 0, false});
-    NodeList_push(g->nodes, (Node){0, 0, 0, false}); // idx 0 is empty
+    g->nodes = NodeList_create(0, (Node){0, 0, 0});
+    NodeList_push(g->nodes, (Node){0, 0, 0}); // idx 0 is empty
     g->start = 0;
     g->end = 0;
     return g;
@@ -29,6 +29,10 @@ void graph_destroy(Graph* g) {
 
 Node graph_get(Graph* g, NodeID id) {
     return NodeList_get(g->nodes, id);
+}
+
+int graph_size(Graph* g) {
+    return NodeList_len(g->nodes);
 }
 
 void graph_set_out1(Graph* g, NodeID id, NodeID out1) {
@@ -44,7 +48,7 @@ void graph_set_out2(Graph* g, NodeID id, NodeID out2) {
 }
 
 NodeID graph_add(Graph* g, char c, NodeID out1, NodeID out2) {
-    NodeList_push(g->nodes, (Node){c, out1, out2, false});
+    NodeList_push(g->nodes, (Node){c, out1, out2});
     return NodeList_len(g->nodes) - 1;
 }
 
@@ -131,21 +135,7 @@ void graph_optimize(Graph* g) {
     }
 }
 
-void graph_print_txt(Graph* g, FILE* fp) {
-    fprintf(fp, "graph %p:\n", (void*)g);
-    fprintf(fp, "- start: %d\n", g->start);
-    fprintf(fp, "- end:   %d\n", g->end);
-    fprintf(fp, "- nodes(%d):\n", NodeList_len(g->nodes));
-
-    for (NodeID i = graph_iter_begin(g); i; graph_iter(g, &i)) {
-        fprintf(fp, "  - node %d:\n", i);
-        fprintf(fp, "    - c:    '%c'\n", NodeList_get(g->nodes, i).c);
-        fprintf(fp, "    - out1: %d\n", NodeList_get(g->nodes, i).out1);
-        fprintf(fp, "    - out2: %d\n", NodeList_get(g->nodes, i).out2);
-    }
-}
-
-void graph_print_dot(Graph* g, FILE* fp) {
+void graph_print_dot(Graph* g, FILE* fp, bool* state) {
     fprintf(fp, "digraph {\n");
     fprintf(fp, "rankdir=LR;\n");
     fprintf(fp, "\"start\" [label=\"\", shape=none,height=.0,width=.0]\n");
@@ -161,9 +151,10 @@ void graph_print_dot(Graph* g, FILE* fp) {
 
         fprintf(
             fp,
-            "%d [label=\"%c\", shape=%s];\n",
+            "%d [label=\"%c%c\", shape=%s];\n",
             i,
             NodeList_get(g->nodes, i).c ? NodeList_get(g->nodes, i).c : ' ',
+            state && state[i] ? '*' : ' ',
             i == g->end ? "doublecircle" : "circle"
         );
 
