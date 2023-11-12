@@ -19,7 +19,7 @@ int main() {
 
     graph_printer_print(gp1, g, NULL, "unoptimized");
 
-    graph_optimize(g);
+    // graph_optimize(g);
 
     graph_printer_print(gp1, g, NULL, "optimized");
 
