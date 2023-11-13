@@ -2,12 +2,13 @@
 
 #include <stdbool.h>
 
+#include "character/character.h"
 #include "list/list.h"
 
 typedef int NodeID;
 
 typedef struct Node {
-    char c;
+    Character c;
     NodeID out1;
     NodeID out2;
 } Node;
@@ -25,7 +26,7 @@ typedef struct Graph {
 Graph* graph_create();
 void graph_destroy(Graph* g);
 
-NodeID graph_add(Graph* g, char c, NodeID out1, NodeID out2);
+NodeID graph_add(Graph* g, Character c, NodeID out1, NodeID out2);
 Node* graph_get(Graph* g, NodeID id);
 
 int graph_size(Graph* g);

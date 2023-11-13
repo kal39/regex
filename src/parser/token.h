@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 
+#include "character/character.h"
 #include "list/list.h"
 
 typedef enum TokenType {
@@ -19,7 +20,7 @@ typedef enum TokenType {
 
 typedef struct Token {
     TokenType type;
-    char c;
+    Character c;
 } Token;
 
 GEN_LIST_DEF(TokenList, Token)

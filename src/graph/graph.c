@@ -3,7 +3,7 @@
 #include "graph.h"
 
 static bool is_empty(Graph* g, NodeID id) {
-    return NodeList_get(g->nodes, id).c == 0;
+    return character_is_empty(NodeList_get(g->nodes, id).c);
 }
 
 static int get_out_count(Graph* g, NodeID id) {
@@ -15,8 +15,8 @@ GEN_LIST_IMPL(NodeList, Node)
 
 Graph* graph_create() {
     Graph* g = malloc(sizeof(Graph));
-    g->nodes = NodeList_create(0, (Node){0, 0, 0});
-    NodeList_push(g->nodes, (Node){0, 0, 0}); // idx 0 is empty
+    g->nodes = NodeList_create(0, (Node){character_empty(), 0, 0});
+    NodeList_push(g->nodes, (Node){character_empty(), 0, 0}); // idx 0 is empty
     g->start = 0;
     g->end = 0;
     return g;
@@ -27,7 +27,7 @@ void graph_destroy(Graph* g) {
     free(g);
 }
 
-NodeID graph_add(Graph* g, char c, NodeID out1, NodeID out2) {
+NodeID graph_add(Graph* g, Character c, NodeID out1, NodeID out2) {
     NodeList_push(g->nodes, (Node){c, out1, out2});
     return NodeList_len(g->nodes) - 1;
 }

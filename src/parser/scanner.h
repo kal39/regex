@@ -6,6 +6,7 @@ typedef struct Scanner {
     char* str;
     int pos;
     Token next;
+    bool nextIsConcat;
 } Scanner;
 
 Scanner* scanner_create(char* str);

@@ -7,8 +7,8 @@
 #include "parser/parser.h"
 
 int main() {
-    char* regex_str = "a(b|c)d?e*f+g";
-    char* str = "abdeffg";
+    char* regex_str = "a1-5^1-5(b|c)d?e*f+g";
+    char* str = "a1zbdeffg";
 
     printf("input: %s\n", regex_str);
 

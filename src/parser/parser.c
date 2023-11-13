@@ -44,8 +44,8 @@ static void add_token(Graph* g, ExprList* eStack, Token t) {
         case TOK_OR: {
             Expr e1 = ExprList_pop(eStack);
             Expr e2 = ExprList_pop(eStack);
-            NodeID start = graph_add(g, 0, e1.start, e2.start);
-            NodeID end = graph_add(g, 0, 0, 0);
+            NodeID start = graph_add(g, character_empty(), e1.start, e2.start);
+            NodeID end = graph_add(g, character_empty(), 0, 0);
             graph_get(g, e1.end)->out2 = end;
             graph_get(g, e2.end)->out1 = end;
             ExprList_push(eStack, (Expr){start, end});
@@ -53,24 +53,24 @@ static void add_token(Graph* g, ExprList* eStack, Token t) {
         }
         case TOK_OPT: {
             Expr e = ExprList_pop(eStack);
-            NodeID end = graph_add(g, 0, 0, 0);
-            NodeID start = graph_add(g, 0, e.start, end);
+            NodeID end = graph_add(g, character_empty(), 0, 0);
+            NodeID start = graph_add(g, character_empty(), e.start, end);
             graph_get(g, e.end)->out1 = end;
             ExprList_push(eStack, (Expr){start, end});
             break;
         }
         case TOK_STAR: {
             Expr e = ExprList_pop(eStack);
-            NodeID end = graph_add(g, 0, 0, 0);
-            NodeID start = graph_add(g, 0, e.start, end);
+            NodeID end = graph_add(g, character_empty(), 0, 0);
+            NodeID start = graph_add(g, character_empty(), e.start, end);
             graph_get(g, e.end)->out1 = start;
             ExprList_push(eStack, (Expr){start, end});
             break;
         }
         case TOK_PLUS: {
             Expr e = ExprList_pop(eStack);
-            NodeID end = graph_add(g, 0, 0, 0);
-            NodeID mid = graph_add(g, 0, end, e.start);
+            NodeID end = graph_add(g, character_empty(), 0, 0);
+            NodeID mid = graph_add(g, character_empty(), end, e.start);
             graph_get(g, e.end)->out1 = mid;
             ExprList_push(eStack, (Expr){e.start, end});
             break;
@@ -82,7 +82,8 @@ static void add_token(Graph* g, ExprList* eStack, Token t) {
 
 Graph* parse(char* regex) {
     Scanner* s = scanner_create(regex);
-    TokenList* tStack = TokenList_create(0, (Token){TOK_END, 0});
+    TokenList* tStack
+        = TokenList_create(0, (Token){TOK_END, character_empty()});
     ExprList* eStack = ExprList_create(0, (Expr){0, 0});
     Graph* g = graph_create();
 

@@ -36,12 +36,11 @@ void graph_printer_print(GraphPrinter* gp, Graph* g, bool* state, char* label) {
 
         if (!hasIn && i != g->start) continue;
 
+        fprintf(gp->fp, "    \"%d_%d\" [label=\"", gp->i, i);
+        character_print(NodeList_get(g->nodes, i).c, gp->fp);
         fprintf(
             gp->fp,
-            "    \"%d_%d\" [label=\"%c\", style=%s, shape=%s];\n",
-            gp->i,
-            i,
-            NodeList_get(g->nodes, i).c ? NodeList_get(g->nodes, i).c : ' ',
+            "\", style=%s, shape=%s, fixedsize=true, width=0.7, height=0.7];\n",
             state && state[i] ? "filled" : "empty",
             i == g->end ? "doublecircle" : "circle"
         );
