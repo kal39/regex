@@ -54,7 +54,37 @@ Token scanner_next(Scanner* scanner) {
             parse_character(scanner, c);
             scanner->next.c.type = CHAR_COMPLEMENT;
             break;
-        case '\\': c = scanner->str[scanner->pos++]; // fall through
+        case '\\':
+            c = scanner->str[scanner->pos++];
+            switch (c) {
+                case 'n':
+                    scanner->next = (Token){TOK_CHAR, character('\n')};
+                    break;
+                case 'r':
+                    scanner->next = (Token){TOK_CHAR, character('\r')};
+                    break;
+                case 't':
+                    scanner->next = (Token){TOK_CHAR, character('\t')};
+                    break;
+                case 'w':
+                    scanner->next
+                        = (Token){TOK_CHAR, character_range('a', 'z')};
+                    break;
+                case 'W':
+                    scanner->next
+                        = (Token){TOK_CHAR, character_complement('a', 'z')};
+                    break;
+                case 'd':
+                    scanner->next
+                        = (Token){TOK_CHAR, character_range('0', '9')};
+                    break;
+                case 'D':
+                    scanner->next
+                        = (Token){TOK_CHAR, character_complement('0', '9')};
+                    break;
+                default: parse_character(scanner, c); break;
+            }
+            break;
         default: parse_character(scanner, c); break;
     }
 
