@@ -37,50 +37,41 @@ static void add_token(Graph* g, ExprList* eStack, Token t) {
         case TOK_CONCAT: {
             Expr e2 = ExprList_pop(eStack);
             Expr e1 = ExprList_pop(eStack);
-            graph_set_out1(g, e1.end, e2.start);
+            graph_get(g, e1.end)->out1 = e2.start;
             ExprList_push(eStack, (Expr){e1.start, e2.end});
             break;
         }
         case TOK_OR: {
             Expr e1 = ExprList_pop(eStack);
             Expr e2 = ExprList_pop(eStack);
-
             NodeID start = graph_add(g, 0, e1.start, e2.start);
             NodeID end = graph_add(g, 0, 0, 0);
-
-            graph_set_out1(g, e1.end, end);
-            graph_set_out1(g, e2.end, end);
-
+            graph_get(g, e1.end)->out2 = end;
+            graph_get(g, e2.end)->out1 = end;
             ExprList_push(eStack, (Expr){start, end});
             break;
         }
         case TOK_OPT: {
             Expr e = ExprList_pop(eStack);
-
             NodeID end = graph_add(g, 0, 0, 0);
             NodeID start = graph_add(g, 0, e.start, end);
-            graph_set_out1(g, e.end, end);
-
+            graph_get(g, e.end)->out1 = end;
             ExprList_push(eStack, (Expr){start, end});
             break;
         }
         case TOK_STAR: {
             Expr e = ExprList_pop(eStack);
-
             NodeID end = graph_add(g, 0, 0, 0);
             NodeID start = graph_add(g, 0, e.start, end);
-            graph_set_out1(g, e.end, start);
-
+            graph_get(g, e.end)->out1 = start;
             ExprList_push(eStack, (Expr){start, end});
             break;
         }
         case TOK_PLUS: {
             Expr e = ExprList_pop(eStack);
-
             NodeID end = graph_add(g, 0, 0, 0);
             NodeID mid = graph_add(g, 0, end, e.start);
-            graph_set_out1(g, e.end, mid);
-
+            graph_get(g, e.end)->out1 = mid;
             ExprList_push(eStack, (Expr){e.start, end});
             break;
         }
@@ -132,8 +123,8 @@ Graph* parse(char* regex) {
         }
     }
 
-    graph_set_start(g, ExprList_peek(eStack).start);
-    graph_set_end(g, ExprList_peek(eStack).end);
+    g->start = ExprList_peek(eStack).start;
+    g->end = ExprList_peek(eStack).end;
 
     scanner_destroy(s);
     TokenList_destroy(tStack);

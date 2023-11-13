@@ -9,9 +9,7 @@ typedef struct Scanner {
 } Scanner;
 
 Scanner* scanner_create(char* str);
-
 void scanner_destroy(Scanner* scanner);
 
 Token scanner_next(Scanner* scanner);
-
 Token scanner_peek(Scanner* scanner);

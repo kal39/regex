@@ -7,7 +7,7 @@ bool match(Graph* g, char* str, GraphPrinter* gp) {
     bool* old_state = malloc(sizeof(bool) * graph_size(g));
     bool* new_state = malloc(sizeof(bool) * graph_size(g));
     for (NodeID i = 1; i < graph_size(g); i++) new_state[i] = false;
-    new_state[graph_get_start(g)] = true;
+    new_state[g->start] = true;
 
     for (int i = 0, k = 0; str[i]; k++) {
         // swap state buffers
@@ -24,7 +24,7 @@ bool match(Graph* g, char* str, GraphPrinter* gp) {
         // clear new state
         for (NodeID j = 1; j < graph_size(g); j++) {
             new_state[j] = false;
-            if (k != 0 && graph_get(g, j).c != 0) new_state[j] = old_state[j];
+            if (k != 0 && graph_get(g, j)->c != 0) new_state[j] = old_state[j];
         }
 
         // iterate
@@ -32,16 +32,16 @@ bool match(Graph* g, char* str, GraphPrinter* gp) {
         for (NodeID j = 1; j < graph_size(g); j++) {
             if (!old_state[j]) continue;
 
-            if ((k == 0 && graph_get(g, j).c == str[i])
-                || graph_get(g, j).c == 0) {
-                NodeID out1 = graph_get(g, j).out1;
-                NodeID out2 = graph_get(g, j).out2;
+            if ((k == 0 && graph_get(g, j)->c == str[i])
+                || graph_get(g, j)->c == 0) {
+                NodeID out1 = graph_get(g, j)->out1;
+                NodeID out2 = graph_get(g, j)->out2;
 
                 new_state[out1] = true;
                 new_state[out2] = true;
 
-                if (out1 && graph_get(g, out1).c == 0) emptyNode = true;
-                if (out2 && graph_get(g, out2).c == 0) emptyNode = true;
+                if (out1 && graph_get(g, out1)->c == 0) emptyNode = true;
+                if (out2 && graph_get(g, out2)->c == 0) emptyNode = true;
             }
         }
 
@@ -51,7 +51,7 @@ bool match(Graph* g, char* str, GraphPrinter* gp) {
         }
     }
 
-    bool res = old_state[graph_get_end(g)];
+    bool res = old_state[g->end];
 
     free(old_state);
     free(new_state);

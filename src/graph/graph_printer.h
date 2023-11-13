@@ -10,7 +10,6 @@ typedef struct GraphPrinter {
 } GraphPrinter;
 
 GraphPrinter* graph_printer_open(FILE* fp);
-
 void graph_printer_close(GraphPrinter* gp);
 
 void graph_printer_print(GraphPrinter* gp, Graph* g, bool* state, char* label);
