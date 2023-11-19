@@ -5,11 +5,13 @@ Character character(char c) {
 }
 
 Character character_range(char start, char end) {
-    return (Character){CHAR_RANGE, start, end};
+    return start <= end ? (Character){CHAR_RANGE, start, end}
+                        : (Character){CHAR_RANGE, end, start};
 }
 
 Character character_complement(char start, char end) {
-    return (Character){CHAR_COMPLEMENT, start, end};
+    return start <= end ? (Character){CHAR_RANGE, start, end}
+                        : (Character){CHAR_RANGE, end, start};
 }
 
 Character character_empty() {

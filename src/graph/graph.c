@@ -41,6 +41,7 @@ int graph_size(Graph* g) {
 }
 
 void graph_optimize(Graph* g) {
+    // clean up edges
     while (true) {
         bool workDone = false;
 
@@ -97,5 +98,20 @@ void graph_optimize(Graph* g) {
         }
 
         if (!workDone) break;
+    }
+
+    // remove empty nodes
+    for (NodeID i = graph_size(g) - 1; i > 0; i--) {
+        if (i != g->end && get_out_count(g, i) == 0) {
+            NodeList_remove(g->nodes, i);
+
+            inter_nodes(g, j) {
+                if (graph_get(g, j)->out1 > i) graph_get(g, j)->out1--;
+                if (graph_get(g, j)->out2 > i) graph_get(g, j)->out2--;
+            }
+
+            if (g->start > i) g->start--;
+            if (g->end > i) g->end--;
+        }
     }
 }

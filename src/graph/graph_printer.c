@@ -2,13 +2,15 @@
 
 #include "graph_printer.h"
 
-GraphPrinter* graph_printer_open(FILE* fp) {
+GraphPrinter* graph_printer_open(FILE* fp, char* title) {
     GraphPrinter* gp = malloc(sizeof(GraphPrinter));
     gp->fp = fp;
     gp->i = 0;
 
     fprintf(fp, "digraph {\n");
     fprintf(fp, "  rankdir=LR;\n");
+    fprintf(fp, "  labelloc=\"t\"\n");
+    fprintf(fp, "  label=\"%s\"\n", title ? title : "");
 
     return gp;
 }

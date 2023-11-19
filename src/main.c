@@ -15,7 +15,7 @@ int main() {
     Graph* g = parse(regex_str);
 
     FILE* fp1 = fopen("match_unoptimized.dot", "w");
-    GraphPrinter* gp1 = graph_printer_open(fp1);
+    GraphPrinter* gp1 = graph_printer_open(fp1, "unoptimized graph");
     printf("%d\n", match(g, str, gp1));
     graph_printer_close(gp1);
     fclose(fp1);
@@ -23,7 +23,7 @@ int main() {
     graph_optimize(g);
 
     FILE* fp2 = fopen("match_optimized.dot", "w");
-    GraphPrinter* gp2 = graph_printer_open(fp2);
+    GraphPrinter* gp2 = graph_printer_open(fp2, "optimized graph");
     printf("%d\n", match(g, str, gp2));
     graph_printer_close(gp2);
     fclose(fp2);
